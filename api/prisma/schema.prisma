@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model mitigations {
+  mitigation_id          String    @id
+  risk_id                String
+  title                  String
+  description            String?
+  status                 String    @default("Planned")
+  mitigation_owner_name  String?
+  mitigation_owner_email String?
+  start_date             DateTime? @db.Date
+  due_date               DateTime? @db.Date
+  completed_date         DateTime? @db.Date
+  impacts_severity       Boolean   @default(false)
+  impacts_probability    Boolean   @default(false)
+  confidence_level       String?
+  control_type           String?
+  estimated_cost         Decimal?  @db.Decimal(12, 2)
+  plan_url               String?
+  notes                  String?
+  created_at             DateTime  @default(now()) @db.Timestamp(6)
+  updated_at             DateTime  @default(now()) @db.Timestamp(6)
+  risks                  risks     @relation(fields: [risk_id], references: [risk_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([risk_id], map: "idx_mitigations_risk")
+  @@index([status], map: "idx_mitigations_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model risk_assessments {
+  assessment_id   BigInt   @id @default(autoincrement())
+  risk_id         String
+  assessment_type String
+  severity        Int
+  probability     Int
+  score           Int?     @default(dbgenerated("(severity * probability)"))
+  assessed_by     String?
+  assessed_at     DateTime @default(now()) @db.Timestamp(6)
+  notes           String?
+  risks           risks    @relation(fields: [risk_id], references: [risk_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([risk_id, assessed_at(sort: Desc)], map: "idx_assessments_risk_date")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model risk_grid {
+  severity    Int
+  probability Int
+  cell_key    Int?   @default(dbgenerated("((severity * 100) + probability)"))
+  score       Int?   @default(dbgenerated("(severity * probability)"))
+  band        String
+  color_hex   String
+
+  @@id([severity, probability])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model risks {
+  risk_id              String             @id
+  title                String
+  description          String?
+  category             String
+  department           String?
+  owner_name           String?
+  owner_email          String?
+  status               String             @default("Open")
+  site_or_program      String?
+  inherent_severity    Int
+  inherent_probability Int
+  residual_severity    Int?
+  residual_probability Int?
+  inherent_score       Int?               @default(dbgenerated("(inherent_severity * inherent_probability)"))
+  residual_score       Int?               @default(dbgenerated("(residual_severity * residual_probability)"))
+  residual_notes       String?
+  last_reassessed_at   DateTime?          @db.Timestamp(6)
+  next_review_due      DateTime?          @db.Date
+  created_at           DateTime           @default(now()) @db.Timestamp(6)
+  updated_at           DateTime           @default(now()) @db.Timestamp(6)
+  mitigations          mitigations[]
+  risk_assessments     risk_assessments[]
+
+  @@index([category, status], map: "idx_risks_category_status")
+  @@index([owner_name], map: "idx_risks_owner")
+}
