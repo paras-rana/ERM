@@ -44,4 +44,5 @@ npm run dev
 
 - Frontend: `http://localhost:5173`
 - API: `http://localhost:3000`
+- Database: `localhost:5432` (`erm`)
 - Login: `http://localhost:5173/login`
