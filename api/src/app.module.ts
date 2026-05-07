@@ -9,6 +9,7 @@ import { RisksModule } from './risks/risks.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', 'api/.env'],
     }),
     PrismaModule,
     AuthModule,

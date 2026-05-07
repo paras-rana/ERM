@@ -7,6 +7,17 @@ datasource db {
   provider = "postgresql"
 }
 
+model app_users {
+  user_id       String   @id
+  email         String   @unique
+  password_hash String
+  role          String   @default("ADMIN")
+  full_name     String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model mitigations {
   mitigation_id          String    @id

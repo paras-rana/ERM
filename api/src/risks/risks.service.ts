@@ -380,7 +380,113 @@ export class RisksService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
 
   async onModuleInit(): Promise<void> {
+    await this.ensureRiskTables();
     await this.ensureSeededProjectRisks();
+  }
+
+  private async ensureRiskTables(): Promise<void> {
+    await this.prisma.$executeRawUnsafe(`
+      CREATE SCHEMA IF NOT EXISTS erm;
+
+      CREATE TABLE IF NOT EXISTS erm.risks (
+        risk_id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        category TEXT NOT NULL,
+        department TEXT,
+        owner_name TEXT,
+        owner_email TEXT,
+        status TEXT NOT NULL DEFAULT 'Open',
+        site_or_program TEXT,
+        inherent_severity INTEGER NOT NULL,
+        inherent_probability INTEGER NOT NULL,
+        residual_severity INTEGER,
+        residual_probability INTEGER,
+        inherent_score INTEGER GENERATED ALWAYS AS (inherent_severity * inherent_probability) STORED,
+        residual_score INTEGER GENERATED ALWAYS AS (
+          CASE
+            WHEN residual_severity IS NULL OR residual_probability IS NULL THEN NULL
+            ELSE residual_severity * residual_probability
+          END
+        ) STORED,
+        residual_notes TEXT,
+        last_reassessed_at TIMESTAMP(6),
+        next_review_due DATE,
+        created_at TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP(6) NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS erm.mitigations (
+        mitigation_id TEXT PRIMARY KEY,
+        risk_id TEXT NOT NULL REFERENCES erm.risks(risk_id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL DEFAULT 'Planned',
+        mitigation_owner_name TEXT,
+        mitigation_owner_email TEXT,
+        start_date DATE,
+        due_date DATE,
+        completed_date DATE,
+        impacts_severity BOOLEAN NOT NULL DEFAULT FALSE,
+        impacts_probability BOOLEAN NOT NULL DEFAULT FALSE,
+        confidence_level TEXT,
+        control_type TEXT,
+        estimated_cost NUMERIC(12, 2),
+        plan_url TEXT,
+        notes TEXT,
+        created_at TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP(6) NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS erm.risk_assessments (
+        assessment_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        risk_id TEXT NOT NULL REFERENCES erm.risks(risk_id) ON DELETE CASCADE,
+        assessment_type TEXT NOT NULL,
+        severity INTEGER NOT NULL,
+        probability INTEGER NOT NULL,
+        score INTEGER GENERATED ALWAYS AS (severity * probability) STORED,
+        assessed_by TEXT,
+        assessed_at TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+        notes TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS erm.risk_grid (
+        severity INTEGER NOT NULL,
+        probability INTEGER NOT NULL,
+        cell_key INTEGER GENERATED ALWAYS AS ((severity * 100) + probability) STORED,
+        score INTEGER GENERATED ALWAYS AS (severity * probability) STORED,
+        band TEXT NOT NULL,
+        color_hex TEXT NOT NULL,
+        PRIMARY KEY (severity, probability)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_risks_category_status ON erm.risks (category, status);
+      CREATE INDEX IF NOT EXISTS idx_risks_owner ON erm.risks (owner_name);
+      CREATE INDEX IF NOT EXISTS idx_mitigations_risk ON erm.mitigations (risk_id);
+      CREATE INDEX IF NOT EXISTS idx_mitigations_status ON erm.mitigations (status);
+      CREATE INDEX IF NOT EXISTS idx_assessments_risk_date
+        ON erm.risk_assessments (risk_id, assessed_at DESC);
+
+      INSERT INTO erm.risk_grid (severity, probability, band, color_hex)
+      SELECT
+        severity,
+        probability,
+        CASE
+          WHEN severity * probability >= 16 THEN 'Critical'
+          WHEN severity * probability >= 10 THEN 'High'
+          WHEN severity * probability >= 5 THEN 'Moderate'
+          ELSE 'Low'
+        END AS band,
+        CASE
+          WHEN severity * probability >= 16 THEN '#B42318'
+          WHEN severity * probability >= 10 THEN '#F79009'
+          WHEN severity * probability >= 5 THEN '#FEC84B'
+          ELSE '#12B76A'
+        END AS color_hex
+      FROM generate_series(1, 5) AS severity
+      CROSS JOIN generate_series(1, 5) AS probability
+      ON CONFLICT (severity, probability) DO NOTHING;
+    `);
   }
 
   // Returns up to 500 risks for register/dashboard pages.

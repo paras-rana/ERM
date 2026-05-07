@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -10,7 +9,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     const connectionString = process.env.DATABASE_URL;
 
     if (!connectionString) {
-      throw new Error('DATABASE_URL is not set in .env');
+      throw new Error(
+        'DATABASE_URL is not set. Expected it in api/.env or the current working directory .env file.',
+      );
     }
 
     const adapter = new PrismaPg({ connectionString });
