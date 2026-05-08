@@ -9,6 +9,8 @@ ERM/
   api/
   web/
   infra/
+    ERM/
+      docker-compose.yml
 ```
 
 ## Local Run
@@ -16,7 +18,7 @@ ERM/
 1. Start Postgres:
 
 ```powershell
-cd infra
+cd infra\ERM
 docker compose up -d
 ```
 
