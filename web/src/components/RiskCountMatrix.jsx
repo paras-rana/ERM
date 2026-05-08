@@ -79,6 +79,7 @@ export default function RiskCountMatrix({
                   key={`${s}-${p}`}
                   className={`matrix-cell matrix-count-cell ${band} ${active ? 'active' : ''}`}
                   title={`Severity ${s}, Probability ${p}, Score ${score}, Count ${count}`}
+                  aria-label={`Risk cell. Severity ${s}. Probability ${p}. Score ${score}. Count ${count}.`}
                   onClick={() => onSelectCell?.({ severity: s, probability: p })}
                 >
                   <span className="matrix-score">{score}</span>

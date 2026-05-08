@@ -42,6 +42,7 @@ export default function RiskMatrix({ title, severity, probability, subtitle }) {
                   key={`${s}-${p}`}
                   className={`matrix-cell ${band} ${isActive ? 'active' : ''}`}
                   title={`Severity ${s}, Probability ${p}, Score ${score}`}
+                  aria-label={`Risk cell. Severity ${s}. Probability ${p}. Score ${score}.`}
                 >
                   <span className="matrix-score">{score}</span>
                   {isActive ? <span className="matrix-dot">&bull;</span> : null}

@@ -1205,24 +1205,28 @@ body {
   width: 54px;
   height: 54px;
   border-radius: 10px;
-  border: 1px solid rgba(87, 99, 136, 0.18);
+  border: 1px solid rgba(87, 99, 136, 0.28);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .matrix-cell.low {
-  background: #deebff;
+  background: linear-gradient(180deg, #f2fbf5 0%, #d9f0df 100%);
+  color: #175b32;
 }
 
 .matrix-cell.medium {
-  background: #e7ecfa;
+  background: linear-gradient(180deg, #fff9eb 0%, #f8df9b 100%);
+  color: #7a4d00;
 }
 
 .matrix-cell.high {
-  background: #f9dfe6;
+  background: linear-gradient(180deg, #fff0ed 0%, #f5c7bf 100%);
+  color: #8f2d1d;
 }
 
 .matrix-score {
@@ -1230,20 +1234,22 @@ body {
   top: 4px;
   right: 6px;
   font-size: 10px;
-  color: #5c6683;
-  opacity: 0.8;
+  color: currentColor;
+  opacity: 0.82;
+  z-index: 1;
 }
 
 .matrix-dot {
   font-size: 40px;
   line-height: 1;
-  color: #2a4f9f;
+  color: rgba(24, 32, 51, 0.78);
+  z-index: 1;
 }
 
 .matrix-cell.active {
-  outline: 2px solid #2a4f9f;
+  outline: 3px solid #182033;
   outline-offset: -2px;
-  box-shadow: 0 6px 12px rgba(78, 58, 134, 0.2);
+  box-shadow: 0 10px 18px rgba(24, 32, 51, 0.18);
 }
 
 /* Count matrix (dashboard) */
@@ -1259,7 +1265,8 @@ body {
 .matrix-count {
   font-size: 18px;
   font-weight: 700;
-  color: #2a3350;
+  color: currentColor;
+  z-index: 1;
 }
 
 /* Dashboard layout */
