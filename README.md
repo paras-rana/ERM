@@ -48,3 +48,26 @@ npm run dev
 - API: `http://localhost:3000`
 - Database: `localhost:5432` (`erm`)
 - Login: `http://localhost:5173/login`
+
+## Access And Roles
+
+The API seeds a default Admin user on startup when the users table is empty:
+
+- Email: `admin@riskapp.local`
+- Password: `Admin123!`
+
+These defaults can be overridden with `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` in the API environment.
+
+Supported roles:
+
+- `Admin`: full application access, including User Management.
+- `Super User`: full application access except User Management.
+
+Admins can manage users from the User Management page at `/users`. New users require full name, email, password, and a role assignment.
+
+## Current Features
+
+- Risk dashboard with matrix, category, and department summary visuals.
+- Risk register and risk detail pages with inherent and residual risk views.
+- Mitigation and assessment tracking for each risk.
+- Admin-only user management with user creation and existing-user table view.

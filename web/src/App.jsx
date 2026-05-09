@@ -11,6 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RiskRegisterPage from './pages/RiskRegisterPage';
 import RiskDetailPage from './pages/RiskDetailPage';
+import UserManagementPage from './pages/UserManagementPage';
 
 function RequireAuth({ children }) {
   const { authReady, isAuthenticated } = useAuth();
@@ -22,6 +23,25 @@ function RequireAuth({ children }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return children;
+}
+
+function RequireAdmin({ children }) {
+  const { authReady, isAuthenticated, user } = useAuth();
+  const location = useLocation();
+
+  if (!authReady) {
+    return <div className="app-loading">Checking session...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  if (user?.role !== 'ADMIN') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -55,6 +75,14 @@ export default function App() {
             <RequireAuth>
               <RiskDetailPage />
             </RequireAuth>
+          )}
+        />
+        <Route
+          path="/users"
+          element={(
+            <RequireAdmin>
+              <UserManagementPage />
+            </RequireAdmin>
           )}
         />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

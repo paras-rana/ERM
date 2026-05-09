@@ -247,6 +247,7 @@ type RiskRow = {
   category: string;
   department: string | null;
   status: string;
+  owner_name: string | null;
   site_or_program: string | null;
   inherent_severity: number;
   inherent_probability: number;
@@ -533,6 +534,7 @@ export class RisksService implements OnModuleInit {
       SELECT
         risk_id,
         title,
+        description,
         category,
         COALESCE(
           department,
@@ -549,6 +551,7 @@ export class RisksService implements OnModuleInit {
           END
         ) AS department,
         status,
+        owner_name,
         site_or_program,
         inherent_severity,
         inherent_probability,

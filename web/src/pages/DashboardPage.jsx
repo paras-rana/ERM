@@ -427,40 +427,7 @@ export default function DashboardPage() {
       {!loading && !error && (
         <>
           <div className="dashboard-grid">
-            <section className="panel">
-              <div className="section-title">
-                <Icon name="matrix" />
-                <span>Risk Matrix</span>
-              </div>
-              <div className="selection-badge-row">
-                {selectedCells.length === 0 ? (
-                  <span className="selection-badge is-empty">All cells</span>
-                ) : (
-                  <>
-                    <span className="selection-badge">
-                      {selectedCells.length} cell{selectedCells.length > 1 ? 's' : ''} selected
-                    </span>
-
-                    <div className="selection-chip-list">
-                      {[...selectedCells]
-                        .sort((a, b) =>
-                          `${a.severity}-${a.probability}`.localeCompare(
-                            `${b.severity}-${b.probability}`,
-                          ),
-                        )
-                        .map((cell) => (
-                          <span
-                            key={`${cell.severity}-${cell.probability}`}
-                            className="selection-chip"
-                          >
-                            S{cell.severity} x P{cell.probability}
-                          </span>
-                        ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
+            <div className="dashboard-visual-panel dashboard-matrix-panel">
               <RiskCountMatrix
                 title={basis === 'inherent' ? 'Inherent Risk Matrix' : 'Residual Risk Matrix'}
                 subtitle="Click cells to filter the risk table and category summary"
@@ -469,10 +436,10 @@ export default function DashboardPage() {
                 selectedCells={selectedCells}
                 onSelectCell={toggleSelectedCell}
               />
-            </section>
+            </div>
 
-            <section className="panel">
-              <h2><Icon name="category" />Category Summary</h2>
+            <section className="panel dashboard-visual-panel dashboard-summary-card">
+              <h2>Risks by Category</h2>
               <p className="muted summary-note">
                 Counts by category grouped into Low / Medium / High.
                 {selectedCells.length > 0 ? ' (Filtered to selected matrix cells)' : ''}
@@ -480,7 +447,7 @@ export default function DashboardPage() {
               </p>
 
               <div className="table-wrap">
-                <table className="simple-table">
+                <table className="simple-table dashboard-summary-table">
                   <thead>
                     <tr>
                       <th>Category</th>
@@ -518,8 +485,8 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="panel">
-              <h2><Icon name="department" />Department Summary</h2>
+            <section className="panel dashboard-visual-panel dashboard-summary-card">
+              <h2>Risks by Department</h2>
               <p className="muted summary-note">
                 Counts by department grouped into Low / Medium / High.
                 {selectedCells.length > 0 ? ' (Filtered to selected matrix cells)' : ''}
@@ -528,7 +495,7 @@ export default function DashboardPage() {
               </p>
 
               <div className="table-wrap">
-                <table className="simple-table">
+                <table className="simple-table dashboard-summary-table">
                   <thead>
                     <tr>
                       <th>Department</th>
@@ -569,109 +536,103 @@ export default function DashboardPage() {
             </section>
           </div>
 
-          <section className="panel">
-            <div className="panel-header-row">
-              <h2><Icon name="risk" />{hasSelection ? 'Risks in Selected Filters' : 'Risks in Dashboard View'}</h2>
+          {hasSelection && (
+            <section className="panel">
+              <div className="panel-header-row">
+                <h2><Icon name="risk" />Risks in Selected Filters</h2>
 
-              <div className="muted">
-                {selectedSummaryText} | Page {page} of {totalPages} - {PAGE_SIZE} per page
-                {selectedCategories.length > 0 ? ` | ${categorySummaryText}` : ''}
-                {selectedDepartments.length > 0 ? ` | ${departmentSummaryText}` : ''}
+                <div className="muted">
+                  {selectedSummaryText} | Page {page} of {totalPages} - {PAGE_SIZE} per page
+                  {selectedCategories.length > 0 ? ` | ${categorySummaryText}` : ''}
+                  {selectedDepartments.length > 0 ? ` | ${departmentSummaryText}` : ''}
+                </div>
               </div>
-            </div>
 
-            <div className="table-wrap">
-              <table className="simple-table">
-                <thead>
-                  <tr>
-                    <th>Risk ID</th>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Risk Level</th>
-                    <th>Score</th>
-                    <th>Open</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedCells.length === 0 && filteredRisks.length === 0 && (
+              <div className="table-wrap">
+                <table className="simple-table">
+                  <thead>
                     <tr>
-                      <td colSpan={7} className="muted">
-                        No risks available for this view.
-                      </td>
+                      <th>Risk ID</th>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Status</th>
+                      <th>Risk Level</th>
+                      <th>Score</th>
+                      <th>Open</th>
                     </tr>
-                  )}
-
-                  {selectedCells.length > 0 && filteredRisks.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="muted">
-                        No risks in the selected matrix cells.
-                      </td>
-                    </tr>
-                  )}
-
-                  {pagedRisks.map((risk) => {
-                    const axes = getAxes(risk, basis);
-                    if (!axes) return null;
-
-                    return (
-                      <tr key={risk.risk_id}>
-                        <td>{risk.risk_id}</td>
-                        <td>{risk.title}</td>
-                        <td>{risk.category}</td>
-                        <td>{risk.status}</td>
-                        <td>
-                          <span className={`pill ${getBand(axes.score)}`}>
-                            {getBand(axes.score)}
-                          </span>
-                        </td>
-                        <td>
-                          S{axes.severity}/P{axes.probability} ({axes.score})
-                        </td>
-                        <td>
-                          <Link className="link-btn" to={`/risks/${risk.risk_id}`}>
-                            Review
-                          </Link>
+                  </thead>
+                  <tbody>
+                    {filteredRisks.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="muted">
+                          No risks match the selected visual filters.
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    )}
 
-            <div className="pagination-row">
-              <button
-                className="secondary-btn"
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                disabled={page === 1}
-              >
-                Previous
-              </button>
+                    {pagedRisks.map((risk) => {
+                      const axes = getAxes(risk, basis);
+                      if (!axes) return null;
 
-              <div className="pagination-pages">
-                {Array.from({ length: totalPages }, (_, index) => index + 1)
-                  .slice(Math.max(0, page - 3), Math.min(totalPages, page + 2))
-                  .map((pageNumber) => (
-                    <button
-                      key={pageNumber}
-                      className={`page-btn ${pageNumber === page ? 'active' : ''}`}
-                      onClick={() => setPage(pageNumber)}
-                    >
-                      {pageNumber}
-                    </button>
-                  ))}
+                      return (
+                        <tr key={risk.risk_id}>
+                          <td>{risk.risk_id}</td>
+                          <td>{risk.title}</td>
+                          <td>{risk.category}</td>
+                          <td>{risk.status}</td>
+                          <td>
+                            <span className={`pill ${getBand(axes.score)}`}>
+                              {getBand(axes.score)}
+                            </span>
+                          </td>
+                          <td>
+                            S{axes.severity}/P{axes.probability} ({axes.score})
+                          </td>
+                          <td>
+                            <Link className="link-btn" to={`/risks/${risk.risk_id}`}>
+                              Review
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
 
-              <button
-                className="secondary-btn"
-                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={page === totalPages}
-              >
-                Next
-              </button>
-            </div>
-          </section>
+              <div className="pagination-row">
+                <button
+                  className="secondary-btn"
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </button>
+
+                <div className="pagination-pages">
+                  {Array.from({ length: totalPages }, (_, index) => index + 1)
+                    .slice(Math.max(0, page - 3), Math.min(totalPages, page + 2))
+                    .map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        className={`page-btn ${pageNumber === page ? 'active' : ''}`}
+                        onClick={() => setPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+                </div>
+
+                <button
+                  className="secondary-btn"
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={page === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </section>
+          )}
         </>
       )}
     </AppFrame>

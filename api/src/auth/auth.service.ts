@@ -1,4 +1,7 @@
 import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   OnModuleInit,
@@ -20,6 +23,15 @@ type UserRow = {
 type TokenPayload = AuthUser & {
   exp: number;
 };
+
+type CreateUserInput = {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+};
+
+const USER_ROLES = new Set(['ADMIN', 'SUPER_USER']);
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -128,6 +140,87 @@ export class AuthService implements OnModuleInit {
     };
   }
 
+  async listUsers(requestingUser: AuthUser) {
+    this.assertCanManageUsers(requestingUser);
+
+    return this.prisma.$queryRaw`
+      SELECT
+        user_id,
+        email,
+        role,
+        full_name,
+        is_active,
+        created_at,
+        updated_at
+      FROM erm.app_users
+      ORDER BY created_at DESC, email ASC
+    `;
+  }
+
+  async createUser(requestingUser: AuthUser, input: CreateUserInput) {
+    this.assertCanManageUsers(requestingUser);
+
+    const fullName = input.fullName?.trim();
+    const email = input.email?.trim().toLowerCase();
+    const password = input.password ?? '';
+    const role = input.role?.trim().toUpperCase();
+
+    if (!fullName) throw new BadRequestException('Full name is required');
+    if (!email) throw new BadRequestException('Email is required');
+    if (!password) throw new BadRequestException('Password is required');
+    if (!role || !USER_ROLES.has(role)) {
+      throw new BadRequestException('Role must be Admin or Super User');
+    }
+
+    const existingRows = await this.prisma.$queryRaw<{ user_id: string }[]>`
+      SELECT user_id
+      FROM erm.app_users
+      WHERE email = ${email}
+      LIMIT 1
+    `;
+
+    if (existingRows[0]?.user_id) {
+      throw new ConflictException('A user with this email already exists');
+    }
+
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        user_id: string;
+        email: string;
+        role: string;
+        full_name: string | null;
+        is_active: boolean;
+        created_at: Date;
+        updated_at: Date;
+      }>
+    >`
+      INSERT INTO erm.app_users (
+        user_id,
+        email,
+        password_hash,
+        role,
+        full_name
+      )
+      VALUES (
+        ${`U-${randomBytes(8).toString('hex').toUpperCase()}`},
+        ${email},
+        ${this.hashPassword(password)},
+        ${role},
+        ${fullName}
+      )
+      RETURNING
+        user_id,
+        email,
+        role,
+        full_name,
+        is_active,
+        created_at,
+        updated_at
+    `;
+
+    return rows[0];
+  }
+
   private createLoginResult(user: AuthUser): LoginResult {
     const exp = Math.floor(Date.now() / 1000) + this.tokenTtlSeconds;
     const payload: TokenPayload = { ...user, exp };
@@ -165,6 +258,12 @@ export class AuthService implements OnModuleInit {
     }
 
     return timingSafeEqual(candidate, expected);
+  }
+
+  private assertCanManageUsers(user: AuthUser): void {
+    if (user.role !== 'ADMIN') {
+      throw new ForbiddenException('User management requires Admin role');
+    }
   }
 
   private async ensureUsersTable(): Promise<void> {

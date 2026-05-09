@@ -315,46 +315,44 @@ export default function RiskDetailPage() {
     }
   }
 
-  const siteProgramLabel = detail && ['Initiative', 'Major Project'].includes(detail.risk.category)
-    ? 'PMO'
-    : (detail?.risk.site_or_program ?? 'No site/program');
+  const pageTitle = detail
+    ? `${detail.risk.risk_id} | ${detail.risk.title}`
+    : riskId ?? 'Risk Detail';
+  const pageDescription = detail?.risk.description?.trim() || 'No risk description provided.';
+  const ownerName = detail?.risk.owner_name?.trim() || 'Unassigned';
 
   return (
     <AppFrame
-      title="Risk Detail"
-      description="Review scoring, mitigations, and assessments for one risk."
-      detailLabel="Risk Detail"
+      title={pageTitle}
+      description={pageDescription}
+      navDetailLabel="Risk Detail"
+      topNavActions={
+        detail ? (
+          <div className="page-owner-card" aria-label={`Risk owner: ${ownerName}`}>
+            <span className="page-owner-label">Owner</span>
+            <span className="page-owner-name">{ownerName}</span>
+          </div>
+        ) : null
+      }
     >
 
-      <section className="panel detail-panel">
+      <section className="panel detail-panel risk-detail-panel">
         {loading && <p>Loading detail...</p>}
         {error && <p className="error">{error}</p>}
 
         {!loading && !error && detail && (
           <>
-            <div className="detail-block detail-section-banded">
-              <h3 className="risk-heading">
-                <strong>{detail.risk.risk_id}</strong>
-                <span>{detail.risk.title}</span>
-              </h3>
-              <p className="risk-description">
-                {detail.risk.description?.trim() || 'No risk description provided.'}
-              </p>
-              <p className="muted">
-                {detail.risk.category} - {detail.risk.status} -{' '}
-                {siteProgramLabel}
-              </p>
-            </div>
-
             <div className="matrix-row">
               <RiskMatrix
                 title="Inherent Risk"
+                subtitle="Risk level before controls or mitigation actions are applied."
                 severity={detail.risk.inherent_severity}
                 probability={detail.risk.inherent_probability}
               />
 
               <RiskMatrix
                 title="Residual Risk"
+                subtitle="Risk level remaining after current controls and mitigations are considered."
                 severity={detail.risk.residual_severity}
                 probability={detail.risk.residual_probability}
               />

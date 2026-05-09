@@ -7,6 +7,13 @@ type LoginBody = {
   password?: string;
 };
 
+type CreateUserBody = {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+};
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -20,6 +27,21 @@ export class AuthController {
   @Get('me')
   async me(@Req() req: { user: { userId: string } }) {
     const user = await this.authService.me(req.user.userId);
+    return { user };
+  }
+
+  @Get('users')
+  async listUsers(@Req() req: { user: { userId: string; email: string; role: string; name: string | null } }) {
+    const users = await this.authService.listUsers(req.user);
+    return { users };
+  }
+
+  @Post('users')
+  async createUser(
+    @Req() req: { user: { userId: string; email: string; role: string; name: string | null } },
+    @Body() body: CreateUserBody,
+  ) {
+    const user = await this.authService.createUser(req.user, body);
     return { user };
   }
 }

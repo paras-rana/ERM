@@ -1,7 +1,4 @@
 import {
-  Children,
-  cloneElement,
-  isValidElement,
   useEffect,
   useRef,
   useState,
@@ -10,52 +7,18 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import Icon from './Icon';
 
-const SECTION_BAND_CLASSES = [
-  'band-purple',
-  'band-orange',
-  'band-green',
-  'band-blue',
-  'band-red',
-];
-
-function hasBandTarget(className = '') {
-  const classNames = className.split(/\s+/).filter(Boolean);
-  return classNames.includes('panel') || classNames.includes('detail-section-banded');
-}
-
-function applySectionBands(node, state) {
-  if (!isValidElement(node)) {
-    return node;
-  }
-
-  const nextProps = {};
-  const className = typeof node.props.className === 'string' ? node.props.className : '';
-
-  if (hasBandTarget(className)) {
-    const bandClass = SECTION_BAND_CLASSES[state.index % SECTION_BAND_CLASSES.length];
-    state.index += 1;
-    nextProps.className = `${className} ${bandClass}`.trim();
-  }
-
-  if (node.props.children) {
-    nextProps.children = Children.map(node.props.children, (child) => applySectionBands(child, state));
-  }
-
-  return Object.keys(nextProps).length > 0 ? cloneElement(node, nextProps) : node;
-}
-
 export default function AppFrame({
   title,
   description,
   children,
   detailLabel = null,
+  navDetailLabel = detailLabel,
   topNavActions = null,
 }) {
   const { user, logout } = useAuth();
+  const canManageUsers = user?.role === 'ADMIN';
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
-  const bandState = { index: 1 };
-  const bandedChildren = Children.map(children, (child) => applySectionBands(child, bandState));
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -79,7 +42,7 @@ export default function AppFrame({
           <nav className="side-nav-links" aria-label="Primary navigation">
             <NavLink
               end
-              className={({ isActive }) => `nav-link side-nav-link band-purple ${isActive ? 'active' : ''}`}
+              className={({ isActive }) => `nav-link side-nav-link ${isActive ? 'active' : ''}`}
               to="/dashboard"
               aria-label="Risk Dashboard"
               data-label="Risk Dashboard"
@@ -89,7 +52,7 @@ export default function AppFrame({
             </NavLink>
             <NavLink
               end
-              className={({ isActive }) => `nav-link side-nav-link band-orange ${isActive ? 'active' : ''}`}
+              className={({ isActive }) => `nav-link side-nav-link ${isActive ? 'active' : ''}`}
               to="/risks"
               aria-label="Risk Register"
               data-label="Risk Register"
@@ -97,14 +60,26 @@ export default function AppFrame({
               <Icon name="register" />
               <span className="side-nav-link-label">Risk Register</span>
             </NavLink>
-            {detailLabel ? (
+            {canManageUsers ? (
+              <NavLink
+                end
+                className={({ isActive }) => `nav-link side-nav-link ${isActive ? 'active' : ''}`}
+                to="/users"
+                aria-label="User Management"
+                data-label="User Management"
+              >
+                <Icon name="users" />
+                <span className="side-nav-link-label">User Management</span>
+              </NavLink>
+            ) : null}
+            {navDetailLabel ? (
               <span
-                className="nav-link side-nav-link band-blue active"
-                aria-label={detailLabel}
-                data-label={detailLabel}
+                className="nav-link side-nav-link active"
+                aria-label={navDetailLabel}
+                data-label={navDetailLabel}
               >
                 <Icon name="detail" />
-                <span className="side-nav-link-label">{detailLabel}</span>
+                <span className="side-nav-link-label">{navDetailLabel}</span>
               </span>
             ) : null}
           </nav>
@@ -113,11 +88,11 @@ export default function AppFrame({
             <div className="session-menu" ref={menuRef}>
               <button
                 type="button"
-                className="session-panel session-trigger band-orange"
+                className="session-panel session-trigger"
                 onClick={() => setMenuOpen((open) => !open)}
               >
                 <div className="session-user-row">
-                  <Icon name="risk" className="session-user-icon" />
+                  <Icon name="user" className="session-user-icon" />
                   <div className="session-name">{user?.name || user?.email || 'Unknown user'}</div>
                 </div>
               </button>
@@ -135,7 +110,7 @@ export default function AppFrame({
         </aside>
 
         <main className="app-content">
-          <header className="page-header page-header-split band-orange">
+          <header className="page-header page-header-split">
             <div>
               <h1>
                 {detailLabel ? (
@@ -154,7 +129,9 @@ export default function AppFrame({
             </div>
           </header>
 
-          {bandedChildren}
+          <div className="content-frame-body">
+            {children}
+          </div>
         </main>
       </div>
     </div>

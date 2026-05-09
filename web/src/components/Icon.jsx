@@ -29,6 +29,20 @@ const ICONS = {
       <path d="M9 12h9" />
     </>
   ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M5 20a7 7 0 0 1 14 0" />
+    </>
+  ),
+  users: (
+    <>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M3.5 20a5.5 5.5 0 0 1 11 0" />
+      <path d="M16 11a3 3 0 1 0-1.4-5.65" />
+      <path d="M17 15a5 5 0 0 1 3.5 4.75" />
+    </>
+  ),
   filter: (
     <>
       <path d="M4 6h16" />
