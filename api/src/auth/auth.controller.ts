@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
 
@@ -8,6 +8,13 @@ type LoginBody = {
 };
 
 type CreateUserBody = {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+};
+
+type UpdateUserBody = {
   fullName?: string;
   email?: string;
   password?: string;
@@ -43,5 +50,23 @@ export class AuthController {
   ) {
     const user = await this.authService.createUser(req.user, body);
     return { user };
+  }
+
+  @Patch('users/:userId')
+  async updateUser(
+    @Req() req: { user: { userId: string; email: string; role: string; name: string | null } },
+    @Param('userId') userId: string,
+    @Body() body: UpdateUserBody,
+  ) {
+    const user = await this.authService.updateUser(req.user, userId, body);
+    return { user };
+  }
+
+  @Delete('users/:userId')
+  async deleteUser(
+    @Req() req: { user: { userId: string; email: string; role: string; name: string | null } },
+    @Param('userId') userId: string,
+  ) {
+    return this.authService.deleteUser(req.user, userId);
   }
 }

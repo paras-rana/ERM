@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   Logger,
+  NotFoundException,
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -25,6 +26,13 @@ type TokenPayload = AuthUser & {
 };
 
 type CreateUserInput = {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+};
+
+type UpdateUserInput = {
   fullName?: string;
   email?: string;
   password?: string;
@@ -219,6 +227,123 @@ export class AuthService implements OnModuleInit {
     `;
 
     return rows[0];
+  }
+
+  async updateUser(requestingUser: AuthUser, userId: string, input: UpdateUserInput) {
+    this.assertCanManageUsers(requestingUser);
+
+    const fullName = input.fullName?.trim();
+    const email = input.email?.trim().toLowerCase();
+    const password = input.password ?? '';
+    const role = input.role?.trim().toUpperCase();
+
+    if (!fullName) throw new BadRequestException('Full name is required');
+    if (!email) throw new BadRequestException('Email is required');
+    if (!role || !USER_ROLES.has(role)) {
+      throw new BadRequestException('Role must be Admin or Super User');
+    }
+
+    const existingRows = await this.prisma.$queryRaw<{ user_id: string }[]>`
+      SELECT user_id
+      FROM erm.app_users
+      WHERE user_id = ${userId}
+      LIMIT 1
+    `;
+
+    if (!existingRows[0]?.user_id) {
+      throw new NotFoundException('User not found');
+    }
+
+    const duplicateRows = await this.prisma.$queryRaw<{ user_id: string }[]>`
+      SELECT user_id
+      FROM erm.app_users
+      WHERE email = ${email}
+        AND user_id <> ${userId}
+      LIMIT 1
+    `;
+
+    if (duplicateRows[0]?.user_id) {
+      throw new ConflictException('A user with this email already exists');
+    }
+
+    const rows = password.trim()
+      ? await this.prisma.$queryRaw<
+        Array<{
+          user_id: string;
+          email: string;
+          role: string;
+          full_name: string | null;
+          is_active: boolean;
+          created_at: Date;
+          updated_at: Date;
+        }>
+      >`
+        UPDATE erm.app_users
+        SET
+          email = ${email},
+          password_hash = ${this.hashPassword(password)},
+          role = ${role},
+          full_name = ${fullName},
+          updated_at = NOW()
+        WHERE user_id = ${userId}
+        RETURNING
+          user_id,
+          email,
+          role,
+          full_name,
+          is_active,
+          created_at,
+          updated_at
+      `
+      : await this.prisma.$queryRaw<
+        Array<{
+          user_id: string;
+          email: string;
+          role: string;
+          full_name: string | null;
+          is_active: boolean;
+          created_at: Date;
+          updated_at: Date;
+        }>
+      >`
+        UPDATE erm.app_users
+        SET
+          email = ${email},
+          role = ${role},
+          full_name = ${fullName},
+          updated_at = NOW()
+        WHERE user_id = ${userId}
+        RETURNING
+          user_id,
+          email,
+          role,
+          full_name,
+          is_active,
+          created_at,
+          updated_at
+      `;
+
+    return rows[0];
+  }
+
+  async deleteUser(requestingUser: AuthUser, userId: string) {
+    this.assertCanManageUsers(requestingUser);
+
+    if (requestingUser.userId === userId) {
+      throw new BadRequestException('You cannot delete your own user account');
+    }
+
+    const rows = await this.prisma.$queryRaw<{ user_id: string }[]>`
+      DELETE FROM erm.app_users
+      WHERE user_id = ${userId}
+      RETURNING user_id
+    `;
+
+    if (!rows[0]?.user_id) {
+      throw new NotFoundException('User not found');
+    }
+
+    return { userId: rows[0].user_id };
   }
 
   private createLoginResult(user: AuthUser): LoginResult {

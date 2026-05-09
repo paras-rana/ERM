@@ -11,6 +11,13 @@ const initialForm = {
   role: 'ADMIN',
 };
 
+const initialEditForm = {
+  fullName: '',
+  email: '',
+  password: '',
+  role: 'ADMIN',
+};
+
 function getErrorMessage(err) {
   if (err instanceof Error) return err.message;
   return 'Unknown error';
@@ -28,13 +35,18 @@ function formatDate(value) {
 }
 
 export default function UserManagementPage() {
-  const { token, logout } = useAuth();
+  const { token, logout, user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(initialForm);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState(initialEditForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const [deleteSaving, setDeleteSaving] = useState(false);
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
+  const [editError, setEditError] = useState('');
 
   async function loadUsers() {
     try {
@@ -62,6 +74,30 @@ export default function UserManagementPage() {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
+  function onEditFormChange(event) {
+    const { name, value } = event.target;
+    setEditForm((current) => ({ ...current, [name]: value }));
+  }
+
+  function openEditOverlay(user) {
+    setEditingUser(user);
+    setEditError('');
+    setEditForm({
+      fullName: user.full_name ?? '',
+      email: user.email ?? '',
+      password: '',
+      role: user.role ?? 'ADMIN',
+    });
+  }
+
+  function closeEditOverlay() {
+    setEditingUser(null);
+    setEditForm(initialEditForm);
+    setEditError('');
+    setEditSaving(false);
+    setDeleteSaving(false);
+  }
+
   async function onSubmit(event) {
     event.preventDefault();
 
@@ -87,6 +123,61 @@ export default function UserManagementPage() {
       setFormError(`Failed to create user: ${getErrorMessage(err)}`);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onEditSubmit(event) {
+    event.preventDefault();
+    if (!editingUser) return;
+
+    try {
+      setEditSaving(true);
+      setEditError('');
+
+      const res = await apiFetch(`/auth/users/${editingUser.user_id}`, {
+        method: 'PATCH',
+        token,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        onUnauthorized: logout,
+        body: JSON.stringify(editForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+
+      setUsers((current) =>
+        current.map((item) => (item.user_id === data.user.user_id ? data.user : item)),
+      );
+      closeEditOverlay();
+    } catch (err) {
+      setEditError(`Failed to update user: ${getErrorMessage(err)}`);
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function onDeleteUser() {
+    if (!editingUser) return;
+
+    try {
+      setDeleteSaving(true);
+      setEditError('');
+
+      const res = await apiFetch(`/auth/users/${editingUser.user_id}`, {
+        method: 'DELETE',
+        token,
+        onUnauthorized: logout,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+
+      setUsers((current) => current.filter((item) => item.user_id !== editingUser.user_id));
+      closeEditOverlay();
+    } catch (err) {
+      setEditError(`Failed to delete user: ${getErrorMessage(err)}`);
+    } finally {
+      setDeleteSaving(false);
     }
   }
 
@@ -179,6 +270,7 @@ export default function UserManagementPage() {
                   <th>Role</th>
                   <th>Status</th>
                   <th>Created</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -189,12 +281,17 @@ export default function UserManagementPage() {
                     <td>{formatRole(user.role)}</td>
                     <td>{user.is_active ? 'Active' : 'Inactive'}</td>
                     <td>{formatDate(user.created_at)}</td>
+                    <td>
+                      <button type="button" className="secondary-btn" onClick={() => openEditOverlay(user)}>
+                        Edit
+                      </button>
+                    </td>
                   </tr>
                 ))}
 
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="muted">No users found.</td>
+                    <td colSpan={6} className="muted">No users found.</td>
                   </tr>
                 ) : null}
               </tbody>
@@ -202,6 +299,91 @@ export default function UserManagementPage() {
           </div>
         ) : null}
       </section>
+
+      <div
+        className={`drawer-overlay modal-overlay ${editingUser ? 'open' : ''}`}
+        onClick={closeEditOverlay}
+      >
+        <div
+          className={`drawer-panel progress-update-modal user-edit-modal ${editingUser ? 'open' : ''}`}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="panel-header-row">
+            <h2>Edit User</h2>
+            <button type="button" className="icon-btn" onClick={closeEditOverlay}>x</button>
+          </div>
+
+          {editError ? <p className="error">{editError}</p> : null}
+
+          <form className="user-create-form" onSubmit={onEditSubmit}>
+            <div className="form-grid">
+              <label>
+                Full Name
+                <input
+                  name="fullName"
+                  value={editForm.fullName}
+                  onChange={onEditFormChange}
+                  autoComplete="name"
+                  required
+                />
+              </label>
+
+              <label>
+                Email
+                <input
+                  name="email"
+                  type="email"
+                  value={editForm.email}
+                  onChange={onEditFormChange}
+                  autoComplete="email"
+                  required
+                />
+              </label>
+
+              <label>
+                New Password
+                <input
+                  name="password"
+                  type="password"
+                  value={editForm.password}
+                  onChange={onEditFormChange}
+                  autoComplete="new-password"
+                  placeholder="Leave blank to keep current password"
+                />
+              </label>
+
+              <label>
+                Role
+                <select name="role" value={editForm.role} onChange={onEditFormChange}>
+                  <option value="ADMIN">Admin</option>
+                  <option value="SUPER_USER">Super User</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="user-edit-actions">
+              <button type="submit" className="primary-btn" disabled={editSaving || deleteSaving}>
+                {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button type="button" className="secondary-btn" onClick={closeEditOverlay}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="danger-btn"
+                onClick={onDeleteUser}
+                disabled={
+                  editSaving ||
+                  deleteSaving ||
+                  editingUser?.user_id === currentUser?.userId
+                }
+              >
+                {deleteSaving ? 'Deleting...' : 'Delete User'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </AppFrame>
   );
 }
