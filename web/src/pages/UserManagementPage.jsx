@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../auth/useAuth';
 import AppFrame from '../components/AppFrame';
 import Icon from '../components/Icon';
@@ -181,6 +182,94 @@ export default function UserManagementPage() {
     }
   }
 
+  const editOverlay = createPortal(
+    <div
+      className={`drawer-overlay modal-overlay ${editingUser ? 'open' : ''}`}
+      onClick={closeEditOverlay}
+    >
+      <div
+        className={`drawer-panel progress-update-modal user-edit-modal ${editingUser ? 'open' : ''}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="panel-header-row">
+          <h2>Edit User</h2>
+          <button type="button" className="icon-btn" onClick={closeEditOverlay}>x</button>
+        </div>
+
+        {editError ? <p className="error">{editError}</p> : null}
+
+        <form className="user-create-form" onSubmit={onEditSubmit}>
+          <div className="form-grid">
+            <label>
+              Full Name
+              <input
+                name="fullName"
+                value={editForm.fullName}
+                onChange={onEditFormChange}
+                autoComplete="name"
+                required
+              />
+            </label>
+
+            <label>
+              Email
+              <input
+                name="email"
+                type="email"
+                value={editForm.email}
+                onChange={onEditFormChange}
+                autoComplete="email"
+                required
+              />
+            </label>
+
+            <label>
+              New Password
+              <input
+                name="password"
+                type="password"
+                value={editForm.password}
+                onChange={onEditFormChange}
+                autoComplete="new-password"
+                placeholder="Leave blank to keep current password"
+              />
+            </label>
+
+            <label>
+              Role
+              <select name="role" value={editForm.role} onChange={onEditFormChange}>
+                <option value="ADMIN">Admin</option>
+                <option value="SUPER_USER">Super User</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="user-edit-actions">
+            <button type="submit" className="primary-btn" disabled={editSaving || deleteSaving}>
+              {editSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button type="button" className="secondary-btn" onClick={closeEditOverlay}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="danger-btn"
+              onClick={onDeleteUser}
+              disabled={
+                editSaving ||
+                deleteSaving ||
+                editingUser?.user_id === currentUser?.userId
+              }
+            >
+              {deleteSaving ? 'Deleting...' : 'Delete User'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body,
+  );
+
   return (
     <AppFrame
       title="User Management"
@@ -300,90 +389,7 @@ export default function UserManagementPage() {
         ) : null}
       </section>
 
-      <div
-        className={`drawer-overlay modal-overlay ${editingUser ? 'open' : ''}`}
-        onClick={closeEditOverlay}
-      >
-        <div
-          className={`drawer-panel progress-update-modal user-edit-modal ${editingUser ? 'open' : ''}`}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="panel-header-row">
-            <h2>Edit User</h2>
-            <button type="button" className="icon-btn" onClick={closeEditOverlay}>x</button>
-          </div>
-
-          {editError ? <p className="error">{editError}</p> : null}
-
-          <form className="user-create-form" onSubmit={onEditSubmit}>
-            <div className="form-grid">
-              <label>
-                Full Name
-                <input
-                  name="fullName"
-                  value={editForm.fullName}
-                  onChange={onEditFormChange}
-                  autoComplete="name"
-                  required
-                />
-              </label>
-
-              <label>
-                Email
-                <input
-                  name="email"
-                  type="email"
-                  value={editForm.email}
-                  onChange={onEditFormChange}
-                  autoComplete="email"
-                  required
-                />
-              </label>
-
-              <label>
-                New Password
-                <input
-                  name="password"
-                  type="password"
-                  value={editForm.password}
-                  onChange={onEditFormChange}
-                  autoComplete="new-password"
-                  placeholder="Leave blank to keep current password"
-                />
-              </label>
-
-              <label>
-                Role
-                <select name="role" value={editForm.role} onChange={onEditFormChange}>
-                  <option value="ADMIN">Admin</option>
-                  <option value="SUPER_USER">Super User</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="user-edit-actions">
-              <button type="submit" className="primary-btn" disabled={editSaving || deleteSaving}>
-                {editSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button type="button" className="secondary-btn" onClick={closeEditOverlay}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="danger-btn"
-                onClick={onDeleteUser}
-                disabled={
-                  editSaving ||
-                  deleteSaving ||
-                  editingUser?.user_id === currentUser?.userId
-                }
-              >
-                {deleteSaving ? 'Deleting...' : 'Delete User'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+      {editOverlay}
     </AppFrame>
   );
 }
