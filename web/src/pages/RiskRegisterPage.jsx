@@ -118,14 +118,18 @@ export default function RiskRegisterPage() {
   }, [loadRisks]);
 
   useEffect(() => {
-    if (!location.state?.openNewRisk) return;
+    const shouldOpenNewRisk =
+      location.state?.openNewRisk ||
+      new URLSearchParams(location.search).get('newRisk') === '1';
+
+    if (!shouldOpenNewRisk) return;
 
     setDrawerInitialForm(INITIAL_FORM);
     setForm(INITIAL_FORM);
     setFormError('');
     setShowDrawer(true);
     navigate(location.pathname, { replace: true, state: {} });
-  }, [location.pathname, location.state, navigate]);
+  }, [location.pathname, location.search, location.state, navigate]);
 
   const categories = useMemo(() => {
     const values = new Set(risks.map((risk) => risk.category).filter(Boolean));

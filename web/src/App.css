@@ -300,6 +300,12 @@ body {
   background:
     radial-gradient(circle at right top, rgba(236, 158, 186, 0.28), transparent 28%),
     linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.page-header > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page-header-split {

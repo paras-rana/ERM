@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import AppFrame from '../components/AppFrame';
 import Icon from '../components/Icon';
@@ -69,7 +69,6 @@ function toggleStringFilter(list, value) {
 
 export default function DashboardPage() {
   const { token, logout } = useAuth();
-  const navigate = useNavigate();
   // Core page and loading state.
   const [risks, setRisks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -350,14 +349,14 @@ export default function DashboardPage() {
       title="Risk Dashboard"
       description="Matrix distribution view with clickable cells and category risk-band summary."
       topNavActions={(
-        <button
-          type="button"
+        <Link
           className="primary-btn"
-          onClick={() => navigate('/risks', { state: { openNewRisk: true } })}
+          to="/risks?newRisk=1"
+          state={{ openNewRisk: true }}
         >
           <Icon name="plus" />
           Add New Risk
-        </button>
+        </Link>
       )}
     >
 
