@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  
 }
 
 datasource db {
@@ -61,6 +60,18 @@ model risk_assessments {
   @@index([risk_id, assessed_at(sort: Desc)], map: "idx_assessments_risk_date")
 }
 
+model risk_tcor_assessments {
+  tcor_assessment_id BigInt   @id @default(autoincrement())
+  risk_id            String
+  tcor_amount        Decimal  @db.Decimal(14, 2)
+  narrative          String?
+  attachment_names   String[] @default([])
+  assessed_at        DateTime @default(now()) @db.Timestamp(6)
+  risks              risks    @relation(fields: [risk_id], references: [risk_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([risk_id, assessed_at(sort: Desc)], map: "idx_tcor_assessments_risk_date")
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model risk_grid {
   severity    Int
@@ -75,28 +86,29 @@ model risk_grid {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model risks {
-  risk_id              String             @id
-  title                String
-  description          String?
-  category             String
-  department           String?
-  owner_name           String?
-  owner_email          String?
-  status               String             @default("Open")
-  site_or_program      String?
-  inherent_severity    Int
-  inherent_probability Int
-  residual_severity    Int?
-  residual_probability Int?
-  inherent_score       Int?               @default(dbgenerated("(inherent_severity * inherent_probability)"))
-  residual_score       Int?               @default(dbgenerated("(residual_severity * residual_probability)"))
-  residual_notes       String?
-  last_reassessed_at   DateTime?          @db.Timestamp(6)
-  next_review_due      DateTime?          @db.Date
-  created_at           DateTime           @default(now()) @db.Timestamp(6)
-  updated_at           DateTime           @default(now()) @db.Timestamp(6)
-  mitigations          mitigations[]
-  risk_assessments     risk_assessments[]
+  risk_id               String                  @id
+  title                 String
+  description           String?
+  category              String
+  department            String?
+  owner_name            String?
+  owner_email           String?
+  status                String                  @default("Open")
+  site_or_program       String?
+  inherent_severity     Int
+  inherent_probability  Int
+  residual_severity     Int?
+  residual_probability  Int?
+  inherent_score        Int?                    @default(dbgenerated("(inherent_severity * inherent_probability)"))
+  residual_score        Int?                    @default(dbgenerated("(residual_severity * residual_probability)"))
+  residual_notes        String?
+  last_reassessed_at    DateTime?               @db.Timestamp(6)
+  next_review_due       DateTime?               @db.Date
+  created_at            DateTime                @default(now()) @db.Timestamp(6)
+  updated_at            DateTime                @default(now()) @db.Timestamp(6)
+  mitigations           mitigations[]
+  risk_assessments      risk_assessments[]
+  risk_tcor_assessments risk_tcor_assessments[]
 
   @@index([category, status], map: "idx_risks_category_status")
   @@index([owner_name], map: "idx_risks_owner")

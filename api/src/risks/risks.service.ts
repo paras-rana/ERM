@@ -238,6 +238,214 @@ const SEEDED_PROJECT_RISKS: CreateRiskInput[] = [
     residual_notes: 'Evidence standards are being documented before rollout accelerates.',
     next_review_due: '2026-04-23',
   },
+  {
+    title: 'Medication reconciliation gaps increase readmission exposure',
+    description:
+      'Transitions of care may miss medication discrepancies, creating avoidable readmission and patient safety exposure.',
+    category: 'Clinical',
+    owner_name: 'Nora Bennett',
+    owner_email: 'nora.bennett@riskapp.local',
+    site_or_program: 'PRJ-241',
+    status: 'Open',
+    inherent_severity: 5,
+    inherent_probability: 3,
+    residual_severity: 4,
+    residual_probability: 2,
+    residual_notes: 'Pharmacy review workflow is being scoped with care management.',
+    next_review_due: '2026-05-07',
+  },
+  {
+    title: 'Prior authorization backlog delays treatment access',
+    description:
+      'Manual authorization queues could delay specialty treatment starts and weaken patient access performance.',
+    category: 'Operations',
+    owner_name: 'Nora Bennett',
+    owner_email: 'nora.bennett@riskapp.local',
+    site_or_program: 'PRJ-241',
+    status: 'Mitigating',
+    inherent_severity: 4,
+    inherent_probability: 4,
+    residual_severity: 3,
+    residual_probability: 3,
+    residual_notes: 'Queue aging thresholds and escalation rules are being piloted.',
+    next_review_due: '2026-05-14',
+  },
+  {
+    title: 'Contracted rate changes are not loaded accurately',
+    description:
+      'Incorrect payer contract terms could drive underpayments, rework, and avoidable revenue leakage.',
+    category: 'Finance',
+    owner_name: 'Evan Brooks',
+    owner_email: 'evan.brooks@riskapp.local',
+    site_or_program: 'PRJ-246',
+    status: 'Monitoring',
+    inherent_severity: 4,
+    inherent_probability: 3,
+    residual_severity: 3,
+    residual_probability: 2,
+    residual_notes: 'Rate load reconciliation is planned after payer file intake.',
+    next_review_due: '2026-05-09',
+  },
+  {
+    title: 'Payment posting automation misapplies remittances',
+    description:
+      'Automation defects could post remittances to incorrect accounts and distort accounts receivable reporting.',
+    category: 'Finance',
+    owner_name: 'Evan Brooks',
+    owner_email: 'evan.brooks@riskapp.local',
+    site_or_program: 'PRJ-246',
+    status: 'Open',
+    inherent_severity: 4,
+    inherent_probability: 4,
+    residual_severity: 3,
+    residual_probability: 3,
+    residual_notes: 'Exception sampling will be added before expanding automation coverage.',
+    next_review_due: '2026-05-16',
+  },
+  {
+    title: 'Cloud cost controls lag workload migration',
+    description:
+      'Teams may migrate workloads before tagging, budgets, and usage alerts are fully enforced.',
+    category: 'IT',
+    owner_name: 'Samira Chen',
+    owner_email: 'samira.chen@riskapp.local',
+    site_or_program: 'PRJ-251',
+    status: 'Mitigating',
+    inherent_severity: 3,
+    inherent_probability: 4,
+    residual_severity: 2,
+    residual_probability: 3,
+    residual_notes: 'FinOps guardrails and automated budget alerts are being configured.',
+    next_review_due: '2026-05-08',
+  },
+  {
+    title: 'Third-party interface downtime disrupts referrals',
+    description:
+      'External referral interfaces could fail without timely detection, delaying scheduling and care coordination.',
+    category: 'IT',
+    owner_name: 'Samira Chen',
+    owner_email: 'samira.chen@riskapp.local',
+    site_or_program: 'PRJ-251',
+    status: 'Monitoring',
+    inherent_severity: 4,
+    inherent_probability: 3,
+    residual_severity: 3,
+    residual_probability: 2,
+    residual_notes: 'Synthetic monitoring and vendor escalation paths are being reviewed.',
+    next_review_due: '2026-05-15',
+  },
+  {
+    title: 'Policy attestation completion falls below target',
+    description:
+      'Workforce attestation gaps could weaken evidence for required annual policy acknowledgement.',
+    category: 'Compliance',
+    owner_name: 'Grace Rivera',
+    owner_email: 'grace.rivera@riskapp.local',
+    site_or_program: 'PRJ-258',
+    status: 'Open',
+    inherent_severity: 3,
+    inherent_probability: 4,
+    residual_severity: 2,
+    residual_probability: 3,
+    residual_notes: 'Manager reminders and completion dashboards are being prepared.',
+    next_review_due: '2026-05-11',
+  },
+  {
+    title: 'Privacy incident triage exceeds reporting windows',
+    description:
+      'Delayed intake or investigation could jeopardize regulatory reporting timelines for privacy incidents.',
+    category: 'Compliance',
+    owner_name: 'Grace Rivera',
+    owner_email: 'grace.rivera@riskapp.local',
+    site_or_program: 'PRJ-258',
+    status: 'Mitigating',
+    inherent_severity: 5,
+    inherent_probability: 2,
+    residual_severity: 3,
+    residual_probability: 2,
+    residual_notes: 'Triage ownership and legal escalation rules are being clarified.',
+    next_review_due: '2026-05-18',
+  },
+  {
+    title: 'Recruiting pipeline cannot support expansion timeline',
+    description:
+      'Hiring velocity may not keep pace with clinic expansion, increasing overtime and launch risk.',
+    category: 'Workforce',
+    owner_name: 'Theo Martin',
+    owner_email: 'theo.martin@riskapp.local',
+    site_or_program: 'PRJ-263',
+    status: 'Open',
+    inherent_severity: 4,
+    inherent_probability: 4,
+    residual_severity: 3,
+    residual_probability: 3,
+    residual_notes: 'Recruiter capacity and agency backup options are under review.',
+    next_review_due: '2026-05-12',
+  },
+  {
+    title: 'Training completion slips before go-live',
+    description:
+      'Required training may not be completed before workflow changes launch across frontline teams.',
+    category: 'Workforce',
+    owner_name: 'Theo Martin',
+    owner_email: 'theo.martin@riskapp.local',
+    site_or_program: 'PRJ-263',
+    status: 'Monitoring',
+    inherent_severity: 3,
+    inherent_probability: 4,
+    residual_severity: 2,
+    residual_probability: 3,
+    residual_notes: 'Completion tracking and manager escalation are now weekly.',
+    next_review_due: '2026-05-19',
+  },
+  {
+    title: 'Sterile processing equipment outage reduces OR capacity',
+    description:
+      'A prolonged equipment outage could constrain instrument availability and reduce operating room throughput.',
+    category: 'Facilities',
+    owner_name: 'Leah Morgan',
+    owner_email: 'leah.morgan@riskapp.local',
+    site_or_program: 'PRJ-269',
+    status: 'Mitigating',
+    inherent_severity: 5,
+    inherent_probability: 3,
+    residual_severity: 4,
+    residual_probability: 2,
+    residual_notes: 'Preventive maintenance windows and rental contingencies are being confirmed.',
+    next_review_due: '2026-05-10',
+  },
+  {
+    title: 'Generator fuel contract lacks surge capacity',
+    description:
+      'Fuel delivery coverage may be insufficient during extended utility outages or regional disruption.',
+    category: 'Facilities',
+    owner_name: 'Leah Morgan',
+    owner_email: 'leah.morgan@riskapp.local',
+    site_or_program: 'PRJ-269',
+    status: 'Open',
+    inherent_severity: 4,
+    inherent_probability: 3,
+    residual_severity: 3,
+    residual_probability: 2,
+    residual_notes: 'Alternate supplier terms and minimum delivery commitments are being negotiated.',
+    next_review_due: '2026-05-17',
+  },
+  {
+    title: 'Workplace violence response drills are inconsistent',
+    description:
+      'Uneven drill participation could reduce staff readiness for high-acuity security incidents.',
+    category: 'Safety',
+    owner_name: 'Marcus Hill',
+    owner_email: 'marcus.hill@riskapp.local',
+    site_or_program: 'PRJ-274',
+    status: 'Monitoring',
+    inherent_severity: 5,
+    inherent_probability: 2,
+    residual_severity: 3,
+    residual_probability: 2,
+    residual_notes: 'Scenario-based drills are being scheduled by site risk level.',
+    next_review_due: '2026-05-13',
+  },
 ];
 
 type RiskRow = {
@@ -255,6 +463,7 @@ type RiskRow = {
   residual_severity: number | null;
   residual_probability: number | null;
   residual_score: number | null;
+  tcor_amount: number | null;
   last_reassessed_at: Date | null;
 };
 
@@ -273,6 +482,7 @@ type CreatedRiskRow = {
   residual_severity: number | null;
   residual_probability: number | null;
   residual_score: number | null;
+  tcor_amount: number | null;
   last_reassessed_at: Date | null;
   next_review_due: Date | null;
 };
@@ -318,6 +528,13 @@ export type CreateAssessmentInput = {
   probability?: number | string;
   assessed_by?: string;
   notes?: string;
+};
+
+// Request payload for TCOR assessment create endpoint.
+export type CreateTcorAssessmentInput = {
+  tcor_amount?: number | string;
+  narrative?: string;
+  attachment_names?: string[];
 };
 
 // Request payload for mitigation update endpoint.
@@ -376,6 +593,15 @@ type AssessmentRow = {
   notes: string | null;
 };
 
+type TcorAssessmentRow = {
+  tcor_assessment_id: string;
+  risk_id: string;
+  tcor_amount: number;
+  narrative: string | null;
+  attachment_names: string[];
+  assessed_at: Date;
+};
+
 @Injectable()
 export class RisksService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
@@ -383,6 +609,7 @@ export class RisksService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     await this.ensureRiskTables();
     await this.ensureSeededProjectRisks();
+    await this.ensureSeededTcorAssessments();
   }
 
   private async ensureRiskTables(): Promise<void> {
@@ -451,6 +678,15 @@ export class RisksService implements OnModuleInit {
         notes TEXT
       );
 
+      CREATE TABLE IF NOT EXISTS erm.risk_tcor_assessments (
+        tcor_assessment_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        risk_id TEXT NOT NULL REFERENCES erm.risks(risk_id) ON DELETE CASCADE,
+        tcor_amount NUMERIC(14, 2) NOT NULL,
+        narrative TEXT,
+        attachment_names TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        assessed_at TIMESTAMP(6) NOT NULL DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS erm.risk_grid (
         severity INTEGER NOT NULL,
         probability INTEGER NOT NULL,
@@ -467,6 +703,8 @@ export class RisksService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_mitigations_status ON erm.mitigations (status);
       CREATE INDEX IF NOT EXISTS idx_assessments_risk_date
         ON erm.risk_assessments (risk_id, assessed_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_tcor_assessments_risk_date
+        ON erm.risk_tcor_assessments (risk_id, assessed_at DESC);
 
       INSERT INTO erm.risk_grid (severity, probability, band, color_hex)
       SELECT
@@ -521,10 +759,17 @@ export class RisksService implements OnModuleInit {
         residual_severity,
         residual_probability,
         residual_score,
+        (
+          SELECT rta.tcor_amount
+          FROM erm.risk_tcor_assessments rta
+          WHERE rta.risk_id = r.risk_id
+          ORDER BY rta.assessed_at DESC, rta.tcor_assessment_id DESC
+          LIMIT 1
+        ) AS tcor_amount,
         last_reassessed_at,
         next_review_due
-      FROM erm.risks
-      ORDER BY risk_id
+      FROM erm.risks r
+      ORDER BY r.risk_id
       LIMIT 500
     `;
   }
@@ -559,9 +804,16 @@ export class RisksService implements OnModuleInit {
         residual_severity,
         residual_probability,
         residual_score,
+        (
+          SELECT rta.tcor_amount
+          FROM erm.risk_tcor_assessments rta
+          WHERE rta.risk_id = r.risk_id
+          ORDER BY rta.assessed_at DESC, rta.tcor_assessment_id DESC
+          LIMIT 1
+        ) AS tcor_amount,
         last_reassessed_at
-      FROM erm.risks
-      WHERE risk_id = ${riskId}
+      FROM erm.risks r
+      WHERE r.risk_id = ${riskId}
       LIMIT 1
     `;
 
@@ -625,18 +877,86 @@ export class RisksService implements OnModuleInit {
     `;
   }
 
+  async findTcorAssessments(riskId: string) {
+    return this.prisma.$queryRaw`
+      SELECT
+        tcor_assessment_id::text AS tcor_assessment_id,
+        risk_id,
+        tcor_amount,
+        narrative,
+        attachment_names,
+        assessed_at
+      FROM erm.risk_tcor_assessments
+      WHERE risk_id = ${riskId}
+      ORDER BY assessed_at DESC, tcor_assessment_id DESC
+    `;
+  }
+
   async findDetail(riskId: string) {
-    const [risk, mitigations, assessments] = await Promise.all([
+    const [risk, mitigations, assessments, tcorAssessments] = await Promise.all([
       this.findOne(riskId),
       this.findMitigations(riskId),
       this.findAssessments(riskId),
+      this.findTcorAssessments(riskId),
     ]);
 
     return {
       risk,
       mitigations,
       assessments,
+      tcorAssessments,
     };
+  }
+
+  async createTcorAssessment(
+    riskId: string,
+    input: CreateTcorAssessmentInput,
+  ): Promise<TcorAssessmentRow> {
+    await this.findOne(riskId);
+
+    const tcorAmount = Number(input.tcor_amount);
+    if (!Number.isFinite(tcorAmount) || tcorAmount < 0) {
+      throw new BadRequestException('TCOR amount must be a non-negative number');
+    }
+
+    const narrative = input.narrative?.trim() || null;
+    const attachmentNames = Array.isArray(input.attachment_names)
+      ? input.attachment_names
+          .map((name) => String(name).trim())
+          .filter((name) => name.length > 0)
+      : [];
+
+    return this.prisma.$transaction(async (tx): Promise<TcorAssessmentRow> => {
+      const inserted = await tx.$queryRaw<TcorAssessmentRow[]>`
+        INSERT INTO erm.risk_tcor_assessments (
+          risk_id,
+          tcor_amount,
+          narrative,
+          attachment_names
+        )
+        VALUES (
+          ${riskId},
+          ${tcorAmount},
+          ${narrative},
+          ${attachmentNames}
+        )
+        RETURNING
+          tcor_assessment_id::text AS tcor_assessment_id,
+          risk_id,
+          tcor_amount,
+          narrative,
+          attachment_names,
+          assessed_at
+      `;
+
+      await tx.$executeRaw`
+        UPDATE erm.risks
+        SET updated_at = NOW()
+        WHERE risk_id = ${riskId}
+      `;
+
+      return inserted[0];
+    });
   }
 
   async createMitigation(
@@ -1275,6 +1595,7 @@ export class RisksService implements OnModuleInit {
           residual_severity,
           residual_probability,
           residual_score,
+          NULL::NUMERIC AS tcor_amount,
           last_reassessed_at,
           next_review_due
       `;
@@ -1339,5 +1660,40 @@ export class RisksService implements OnModuleInit {
 
       await this.createRisk(risk);
     }
+  }
+
+  private async ensureSeededTcorAssessments(): Promise<void> {
+    await this.prisma.$executeRaw`
+      INSERT INTO erm.risk_tcor_assessments (
+        risk_id,
+        tcor_amount,
+        narrative,
+        attachment_names
+      )
+      SELECT
+        r.risk_id,
+        (
+          (
+            COALESCE(r.residual_score, r.inherent_score, 0) * 17500
+          ) +
+          CASE r.category
+            WHEN 'Finance' THEN 65000
+            WHEN 'IT' THEN 55000
+            WHEN 'Clinical' THEN 50000
+            WHEN 'Compliance' THEN 45000
+            WHEN 'Operations' THEN 40000
+            WHEN 'Workforce' THEN 35000
+            ELSE 30000
+          END
+        )::NUMERIC(14, 2),
+        'Seeded baseline TCOR assessment for dashboard and register reporting.',
+        ARRAY[]::TEXT[]
+      FROM erm.risks r
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM erm.risk_tcor_assessments t
+        WHERE t.risk_id = r.risk_id
+      )
+    `;
   }
 }

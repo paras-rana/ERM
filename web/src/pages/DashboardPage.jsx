@@ -5,7 +5,7 @@ import AppFrame from '../components/AppFrame';
 import Icon from '../components/Icon';
 import RiskCountMatrix from '../components/RiskCountMatrix';
 import { apiFetch } from '../lib/api';
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 // Used when the API row has no explicit department value.
 const DEFAULT_DEPARTMENT_BY_CATEGORY = {
@@ -65,6 +65,16 @@ function toggleStringFilter(list, value) {
     return list.filter((item) => item !== value);
   }
   return [...list, value];
+}
+
+function formatCurrency(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return '$0';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 export default function DashboardPage() {
@@ -265,6 +275,15 @@ export default function DashboardPage() {
   }, [matrixFilteredRisks, basis, selectedCategories]);
 
   const excludedCount = risks.length - validRisks.length;
+  const totalRiskCount = risks.length;
+  const aggregateTcor = useMemo(
+    () =>
+      risks.reduce((total, risk) => {
+        const amount = Number(risk.tcor_amount);
+        return Number.isFinite(amount) ? total + amount : total;
+      }, 0),
+    [risks],
+  );
 
   const selectedSummaryText = useMemo(() => {
     if (selectedCells.length === 0) return 'Showing all matrix cells';
@@ -425,6 +444,24 @@ export default function DashboardPage() {
 
       {!loading && !error && (
         <>
+          <div className="risk-dashboard-kpis">
+            <section className="risk-total-visual" aria-label="Total risks in register">
+              <div className="risk-total-number">{totalRiskCount}</div>
+              <div className="risk-total-copy">
+                <h2>Total Risks</h2>
+                <p>Current count in the risk register.</p>
+              </div>
+            </section>
+
+            <section className="risk-total-visual tcor-total-visual" aria-label="Aggregate TCOR">
+              <div className="risk-total-copy">
+                <h2>Aggregate TCOR</h2>
+                <p>Latest total cost of risk across all risks.</p>
+              </div>
+              <div className="tcor-total-number">{formatCurrency(aggregateTcor)}</div>
+            </section>
+          </div>
+
           <div className="dashboard-grid">
             <div className="dashboard-visual-panel dashboard-matrix-panel">
               <RiskCountMatrix

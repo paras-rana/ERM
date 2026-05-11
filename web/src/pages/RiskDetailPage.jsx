@@ -30,6 +30,11 @@ const initialAssessmentForm = {
   notes: '',
 };
 
+const initialTcorForm = {
+  tcor_amount: '',
+  narrative: '',
+};
+
 function renderImpactIcon(impacts) {
   if (impacts) {
     return <Icon name="arrowDown" className="impact-icon impact-icon-down" />;
@@ -46,6 +51,22 @@ function getErrorMessage(err) {
 function toDateInputValue(value) {
   if (!value) return '';
   return new Date(value).toISOString().slice(0, 10);
+}
+
+function formatCurrency(value) {
+  if (value == null || value === '') return '-';
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return '-';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function formatDateTime(value) {
+  if (!value) return '-';
+  return new Date(value).toLocaleString();
 }
 
 export default function RiskDetailPage() {
@@ -66,23 +87,28 @@ export default function RiskDetailPage() {
   const [editingAssessmentId, setEditingAssessmentId] = useState(null);
 
   // Single source of truth for drawer visibility and form mode.
-  // values: null | 'mitigation' | 'assessment'
+  // values: null | 'mitigation' | 'assessment' | 'tcor'
   const [activeForm, setActiveForm] = useState(null);
 
   // Controlled form state for both drawer forms.
   const [mitigationForm, setMitigationForm] = useState(initialMitigationForm);
   const [assessmentForm, setAssessmentForm] = useState(initialAssessmentForm);
+  const [tcorForm, setTcorForm] = useState(initialTcorForm);
+  const [tcorFiles, setTcorFiles] = useState([]);
 
   // Submit lifecycle state.
   const [mitigationSaving, setMitigationSaving] = useState(false);
   const [assessmentSaving, setAssessmentSaving] = useState(false);
+  const [tcorSaving, setTcorSaving] = useState(false);
 
   // Form-specific error messages.
   const [mitigationError, setMitigationError] = useState('');
   const [assessmentError, setAssessmentError] = useState('');
+  const [tcorError, setTcorError] = useState('');
 
   const isMitigationOpen = activeForm === 'mitigation';
   const isAssessmentOpen = activeForm === 'assessment';
+  const isTcorOpen = activeForm === 'tcor';
 
   const closeDrawer = () => {
     setActiveForm(null);
@@ -90,6 +116,7 @@ export default function RiskDetailPage() {
     setEditingAssessmentId(null);
     setMitigationError('');
     setAssessmentError('');
+    setTcorError('');
   };
 
   // Loads all data needed by the page.
@@ -193,9 +220,20 @@ export default function RiskDetailPage() {
   function openNewAssessmentForm() {
     setMitigationError('');
     setAssessmentError('');
+    setTcorError('');
     setEditingAssessmentId(null);
     setAssessmentForm(initialAssessmentForm);
     setActiveForm((prev) => (prev === 'assessment' ? null : 'assessment'));
+  }
+
+  // Opens TCOR drawer in "add new cost assessment" mode.
+  function openNewTcorForm() {
+    setMitigationError('');
+    setAssessmentError('');
+    setTcorError('');
+    setTcorForm(initialTcorForm);
+    setTcorFiles([]);
+    setActiveForm((prev) => (prev === 'tcor' ? null : 'tcor'));
   }
 
   // Generic input binding for mitigation form controls.
@@ -213,6 +251,18 @@ export default function RiskDetailPage() {
       ...prev,
       [name]: value,
     }));
+  }
+
+  function onTcorChange(e) {
+    const { name, value } = e.target;
+    setTcorForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  function onTcorFilesChange(e) {
+    setTcorFiles(Array.from(e.target.files ?? []));
   }
 
   // Persists mitigation changes; switches between POST/PUT based on edit state.
@@ -312,6 +362,47 @@ export default function RiskDetailPage() {
       );
     } finally {
       setAssessmentSaving(false);
+    }
+  }
+
+  async function submitTcor(e) {
+    e.preventDefault();
+    setTcorError('');
+
+    try {
+      setTcorSaving(true);
+
+      const payload = {
+        tcor_amount: tcorForm.tcor_amount === '' ? null : Number(tcorForm.tcor_amount),
+        narrative: tcorForm.narrative,
+        attachment_names: tcorFiles.map((file) => file.name),
+      };
+
+      const res = await apiFetch(`/risks/${riskId}/tcor-assessments`, {
+        method: 'POST',
+        token,
+        onUnauthorized: logout,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const msg =
+          errBody && typeof errBody.message === 'string'
+            ? errBody.message
+            : `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
+
+      setTcorForm(initialTcorForm);
+      setTcorFiles([]);
+      setActiveForm(null);
+      await loadDetail();
+    } catch (err) {
+      setTcorError(`Failed to add TCOR assessment: ${getErrorMessage(err)}`);
+    } finally {
+      setTcorSaving(false);
     }
   }
 
@@ -474,6 +565,54 @@ export default function RiskDetailPage() {
                               Edit
                             </button>
                           </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="detail-block detail-section-banded tcor-section">
+              <div className="panel-header-row">
+                <h3><Icon name="assessment" />Total Cost of Risk</h3>
+                <button className="secondary-btn" onClick={openNewTcorForm}>
+                  <Icon name="plus" />
+                  {isTcorOpen ? 'Close Cost Form' : 'Add Cost Assessment'}
+                </button>
+              </div>
+
+              <div className="tcor-summary-card">
+                <span className="tcor-summary-label">Latest TCOR</span>
+                <span className="tcor-summary-value">
+                  {formatCurrency(detail.risk.tcor_amount)}
+                </span>
+              </div>
+
+              {(detail.tcorAssessments ?? []).length === 0 ? (
+                <p className="muted">No TCOR assessments found.</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="simple-table tcor-table">
+                    <thead>
+                      <tr>
+                        <th>TCOR</th>
+                        <th>Narrative</th>
+                        <th>Attachments</th>
+                        <th>Assessed At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(detail.tcorAssessments ?? []).map((assessment) => (
+                        <tr key={assessment.tcor_assessment_id}>
+                          <td>{formatCurrency(assessment.tcor_amount)}</td>
+                          <td>{assessment.narrative || '-'}</td>
+                          <td>
+                            {assessment.attachment_names?.length
+                              ? assessment.attachment_names.join(', ')
+                              : '-'}
+                          </td>
+                          <td>{formatDateTime(assessment.assessed_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -802,6 +941,102 @@ export default function RiskDetailPage() {
                       : editingAssessmentId
                         ? 'Update Assessment'
                         : 'Save Assessment'}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+
+          {isTcorOpen && (
+            <>
+              <div className="drawer-header">
+                <h2>Add Cost Assessment</h2>
+                <button className="icon-btn" onClick={closeDrawer} aria-label="Close">
+                  x
+                </button>
+              </div>
+
+              <p className="muted">
+                Capture the total cost of risk estimate and supporting context.
+              </p>
+
+              {tcorError && <p className="error">{tcorError}</p>}
+
+              <form className="risk-form" onSubmit={submitTcor}>
+                <div className="inline-form-grid">
+                  <label>
+                    <span className="field-label">TCOR <span className="required-marker" aria-hidden="true">*</span></span>
+                    <input
+                      name="tcor_amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={tcorForm.tcor_amount}
+                      onChange={onTcorChange}
+                      required
+                    />
+                  </label>
+
+                  <label className="full-width">
+                    Cost Assessment Narrative
+                    <textarea
+                      name="narrative"
+                      rows={4}
+                      value={tcorForm.narrative}
+                      onChange={onTcorChange}
+                      placeholder="Describe assumptions, estimate basis, or cost drivers..."
+                    />
+                  </label>
+
+                  <label className="full-width">
+                    Attach Estimate Files
+                    <input
+                      name="attachments"
+                      type="file"
+                      multiple
+                      onChange={onTcorFilesChange}
+                    />
+                  </label>
+
+                  {tcorFiles.length > 0 && (
+                    <div className="full-width tcor-file-list">
+                      {tcorFiles.map((file) => (
+                        <span key={`${file.name}-${file.size}`}>{file.name}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="drawer-actions">
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => {
+                      setTcorForm(initialTcorForm);
+                      setTcorFiles([]);
+                      closeDrawer();
+                    }}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => {
+                      setTcorForm(initialTcorForm);
+                      setTcorFiles([]);
+                    }}
+                  >
+                    Reset
+                  </button>
+
+                  <button
+                    className="primary-btn"
+                    type="submit"
+                    disabled={tcorSaving}
+                  >
+                    {tcorSaving ? 'Saving...' : 'Save Cost Assessment'}
                   </button>
                 </div>
               </form>

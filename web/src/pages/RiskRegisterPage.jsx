@@ -72,6 +72,17 @@ function getErrorMessage(err) {
   return 'Unknown error';
 }
 
+function formatCurrency(value) {
+  if (value == null || value === '') return '-';
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return '-';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export default function RiskRegisterPage() {
   const { token, logout } = useAuth();
   // Main page + list state.
@@ -530,6 +541,7 @@ export default function RiskRegisterPage() {
                     <th>Status</th>
                     <th>Risk Level</th>
                     <th>Owner</th>
+                    <th>TCOR</th>
                     <th>Inherent</th>
                     <th>Residual</th>
                     <th>Open</th>
@@ -549,6 +561,7 @@ export default function RiskRegisterPage() {
                           <span className={`pill ${band}`}>{band}</span>
                         </td>
                         <td>{risk.owner_name || '-'}</td>
+                        <td>{formatCurrency(risk.tcor_amount)}</td>
                         <td>
                           S{risk.inherent_severity}/P{risk.inherent_probability} (
                           {risk.inherent_score})
@@ -569,7 +582,7 @@ export default function RiskRegisterPage() {
 
                   {pagedRisks.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="muted">
+                      <td colSpan={11} className="muted">
                         No risks match the selected filters.
                       </td>
                     </tr>

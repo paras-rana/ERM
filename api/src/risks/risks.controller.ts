@@ -4,6 +4,7 @@ import type {
   CreateAssessmentInput,
   CreateMitigationInput,
   CreateRiskInput,
+  CreateTcorAssessmentInput,
   UpdateAssessmentInput,
   UpdateMitigationInput,
 } from './risks.service';
@@ -61,6 +62,19 @@ export class RisksController {
   @Get(':id/assessments')
   findAssessments(@Param('id') id: string) {
     return this.risksService.findAssessments(id);
+  }
+
+  @Post(':id/tcor-assessments')
+  createTcorAssessment(
+    @Param('id') id: string,
+    @Body() body: CreateTcorAssessmentInput,
+  ) {
+    return this.risksService.createTcorAssessment(id, body);
+  }
+
+  @Get(':id/tcor-assessments')
+  findTcorAssessments(@Param('id') id: string) {
+    return this.risksService.findTcorAssessments(id);
   }
 
   @Put(':id/assessments/:assessmentId')
